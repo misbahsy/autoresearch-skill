@@ -21,9 +21,48 @@ Give it any project with a measurable metric and tunable variables, and it runs 
 
 The agent modifies your code/config, runs your eval script, measures the result, keeps improvements (git commit stays), discards regressions (git reset), and logs everything to `results.tsv`. Every 10 experiments it writes a `findings.md` summary of what it's learned.
 
+## Installation
+
+### Claude Code
+
+```bash
+# Option A: Add to your project's skill directory
+mkdir -p .claude/skills
+cp -r /path/to/autoresearch-skill/* .claude/skills/autoresearch/
+
+# Option B: Symlink for shared use across projects
+mkdir -p .claude/skills
+ln -s /path/to/autoresearch-skill .claude/skills/autoresearch
+```
+
+### OpenClaw / Claude Code (global)
+
+```bash
+# Symlink into the global skills directory
+ln -s /path/to/autoresearch-skill ~/.claude/skills/autoresearch
+```
+
+### Codex
+
+```bash
+# Add SKILL.md content to your project's AGENTS.md or codex configuration
+cp /path/to/autoresearch-skill/SKILL.md ./AGENTS.md
+```
+
+### Amp
+
+```bash
+# Copy the skill files into your project
+cp -r /path/to/autoresearch-skill/* .amp/skills/autoresearch/
+```
+
+### Other agents
+
+Any agent that reads markdown instruction files can use this skill. Copy `SKILL.md` to wherever your agent looks for instructions (e.g., `AGENTS.md`, `.cursor/rules/`, etc.).
+
 ## Quick Start
 
-1. Copy this skill into your agent's skill directory (or reference it from your config)
+1. Install the skill using one of the methods above
 2. Tell your agent: "Run autoresearch" or "Set up an experiment loop"
 3. Answer the interview questions (project, metric, files, eval command)
 4. Walk away. Come back to a log of experiments and improved code.
@@ -44,15 +83,43 @@ Any domain with a **measurable outcome** and **tunable variables**:
 | Checkout flows | completion_rate | form layout, steps, payment options |
 | SEO content | organic_ctr | titles, meta descriptions, structure |
 
+## Overnight Runs: The Launcher
+
+For long overnight runs, the prompt-based "never stop" loop can fail if the agent hits context limits or crashes. The `run.sh` launcher solves this with a crash-resilient outer loop (inspired by [snarktank/ralph](https://github.com/snarktank/ralph)):
+
+```bash
+# Run with Claude Code (default)
+./run.sh
+
+# Run with a different tool
+./run.sh --tool codex
+./run.sh --tool amp
+./run.sh --tool gemini
+
+# Cap at 50 iterations
+./run.sh --max 50
+```
+
+How it works:
+- Spawns a **fresh agent instance** per experiment (clean context every time)
+- Agent crashes don't break the loop (`|| true`)
+- State persists via files: `results.tsv`, `findings.md`, git history
+- Each iteration reads `program.md`, does one experiment, then exits
+- The bash loop restarts the agent for the next experiment
+
+You still need to run the skill interview first to generate `program.md`. The launcher just makes the loop more robust.
+
 ## File Structure
 
 ```
 autoresearch/
   SKILL.md                    # The skill itself (interview + loop + rules)
+  run.sh                      # Crash-resilient launcher for overnight runs
   templates/
     program.template.md       # Template for generated experiment config
     eval_python.md            # Reference eval script in Python
     eval_shell.md             # Reference eval script in shell
+  LICENSE                     # MIT license
   README.md                   # This file
 ```
 
