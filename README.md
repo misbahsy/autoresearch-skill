@@ -85,7 +85,7 @@ Any domain with a **measurable outcome** and **tunable variables**:
 
 ## Overnight Runs: The Launcher
 
-For long overnight runs, the prompt-based "never stop" loop can fail if the agent hits context limits or crashes. The `run.sh` launcher solves this with a crash-resilient outer loop (inspired by [snarktank/ralph](https://github.com/snarktank/ralph)):
+For long overnight runs, the prompt-based "never stop" loop can fail if the agent hits context limits or crashes. The `run.sh` launcher solves this with a crash-resilient outer loop:
 
 ```bash
 # Run with Claude Code (default)
