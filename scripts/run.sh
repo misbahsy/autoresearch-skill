@@ -8,10 +8,10 @@
 #   - Each iteration gets clean context, reads state from files
 #
 # Usage:
-#   ./run.sh                     # Claude Code, default 1000 iterations
-#   ./run.sh --tool codex        # Use Codex CLI
-#   ./run.sh --max 50            # Cap at 50 iterations
-#   ./run.sh --tool amp          # Use Amp
+#   ./scripts/run.sh                     # Claude Code, default 1000 iterations
+#   ./scripts/run.sh --tool codex        # Use Codex CLI
+#   ./scripts/run.sh --max 50            # Cap at 50 iterations
+#   ./scripts/run.sh --tool amp          # Use Amp
 #
 # Prerequisites:
 #   - program.md must exist (run the skill interview first)
