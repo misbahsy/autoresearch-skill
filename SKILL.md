@@ -46,20 +46,30 @@ Acknowledge and share what you inferred before moving on.
 
 ### Step 2: Define the Metric
 
-Ask: "What is the single number that tells you things got better? Give it a
-name and tell me whether higher or lower is better."
+Ask: "What is the single number that tells you things got better? Give it a name and tell me whether higher or lower is better."
 
-Examples if unsure: `conversion_rate` (higher), `p95_latency_ms` (lower),
-`accuracy` (higher), `cost_per_acquisition` (lower), `val_loss` (lower).
+Examples to offer if they're unsure:
+- `conversion_rate` (higher is better)
+- `p95_latency_ms` (lower is better)
+- `accuracy` (higher is better)
+- `cost_per_acquisition` (lower is better)
+- `roas` (higher is better)
+- `val_loss` (lower is better)
+- `throughput_rps` (higher is better)
 
-Follow up: "Do you know the current baseline value? If not, we'll measure it."
+Follow up: "Do you know the current baseline value? If not, we'll measure it before starting."
 
 ### Step 3: Identify the Variables
 
-Ask: "What are the main knobs I should be turning?"
+Ask: "What are the main knobs I should be turning? List the things you'd normally experiment with manually."
 
-Suggest domain-specific examples. See `references/program-template.md` for the
-full variable taxonomy.
+Suggest examples based on their domain:
+- **Landing page**: headline, subheading, CTA text, button color/style, form fields, social proof, layout, hero image
+- **RAG pipeline**: chunk_size, overlap, top_k, embedding_model, reranking_threshold, prompt_template
+- **Ads**: keyword bids, match types, ad copy, audience targeting, placement, schedule
+- **API**: cache TTL, connection pool size, query structure, batch sizes, retry logic, indexing
+- **Prompt engineering**: system prompt, few-shot examples, temperature, output format, chain-of-thought structure
+- **ML training**: learning rate, batch size, architecture choices, regularization, data augmentation
 
 ### Step 4: Define the Files
 
@@ -72,23 +82,44 @@ Ask three questions:
 
 Ask: "How do I run the evaluation and get a score? Give me the command."
 
-Then: "What does the score line look like when it prints to stdout?"
-(e.g., `accuracy: 0.847`, `conversion_rate=3.2`)
+Examples: `python eval.py`, `node test.js`, `./benchmark.sh`, `pytest tests/ -q`
 
-If the user doesn't have an eval script, offer to create one. Reference
+Then ask: "What does the score line look like when it prints to stdout?"
+
+Examples: `accuracy: 0.847`, `conversion_rate=3.2`, `p95_latency: 45.2`
+
+The agent needs this exact pattern to parse the metric from output.
+
+If the user doesn't have an eval script yet, offer to help create one. Reference
 templates in `references/eval-python.md` and `references/eval-shell.md`.
 
 ### Step 6: Time and Constraints
 
 Ask: "How long should each experiment take to run? Default is 5 minutes."
 
-Ask: "Any secondary metrics that must NOT get worse even if the primary
-metric improves?" (e.g., "API cost under $0.05/query", "page load under 3s")
+Adjust guidance based on domain:
+- Prompt/config changes: 1–2 minutes might be enough
+- Code changes needing compilation/startup: 5 minutes
+- Experiments needing real-world data collection (ads, analytics): 30–60 minutes
+
+Ask: "Any secondary metrics to track? Things that must NOT get worse even if the primary metric improves."
+
+Examples:
+- "API cost must stay under $0.05/query"
+- "Page load under 3 seconds"
+- "Error rate under 0.1%"
+- "VRAM usage under 24GB"
 
 ### Step 7: Rules and Constraints
 
 Ask: "Any hard rules I must follow during experiments?"
-(e.g., "Never change brand colors", "Don't add new dependencies")
+
+Examples:
+- "Never change brand colors"
+- "Keep the page under 100KB"
+- "Don't modify the tokenizer"
+- "Always use batch mode for API calls"
+- "Don't add new dependencies"
 
 Ask: "Any setup commands I need to run first? (npm install, pip install, etc.)"
 
@@ -159,11 +190,12 @@ Once setup is complete, follow program.md and run this loop.
 **NEVER stop unless the user manually interrupts.**
 
 ### Step 1: Plan
-- Read `results.tsv` to see what's been tried
-- Analyze patterns: which changes helped, hurt, or crashed
-- Formulate a specific, testable hypothesis
-- Prefer underexplored dimensions
-- Write a one-line description before implementing
+- Read the full `results.tsv` to see what has been tried and what the results were
+- Analyze patterns: which types of changes helped, which hurt, which crashed
+- Identify underexplored dimensions of the problem
+- Formulate a specific, testable hypothesis for this experiment
+- Prefer exploring different variable categories than recent experiments
+- Write a one-line description of what you'll try and why before implementing
 
 ### Step 2: Implement
 - Make targeted changes to editable files ONLY
@@ -203,22 +235,33 @@ Write to `findings.md`: what works, what doesn't, trends, unexplored areas.
 Commit.
 
 ### Step 9: Continue
-Go to Step 1. **Do not stop. Do not ask for permission.**
+Go back to Step 1. **Do not stop. Do not ask for permission.**
 
-If stuck: combine successful changes, try opposites, try bold changes, re-read
-context files, look at what top experiments share.
+If you run out of ideas:
+- Combine two previously successful changes that haven't been tried together
+- Try the **opposite** of a previously failed change
+- Try a completely different dimension of the problem
+- Revert to baseline and make one large, bold change
+- Re-read any context files for fresh inspiration
+- Try an unconventional or creative approach
+- Look at what the best-performing experiments have in common
+- Try smaller/larger variations of the most successful change
 
 ---
 
 ## Phase 4: Resume
 
-If `program.md` already exists when activated:
+If `program.md` already exists when the skill is activated:
 
-1. Read `program.md`, `results.tsv`, and `findings.md` (if it exists)
-2. Identify current best score and which commit achieved it
-3. Verify clean working tree
-4. Tell user: "Resuming from experiment #{N}. Current best: {metric}={value}."
-5. Continue from Phase 3, Step 1. Do NOT re-run the interview.
+1. Read `program.md` for the full experiment configuration
+2. Read `results.tsv` for the complete experiment history
+3. Read `findings.md` if it exists for accumulated insights
+4. Analyze what has been tried, what worked, what didn't
+5. Identify the current best score and which commit achieved it
+6. Verify the working tree is clean (if not, ask the user what to do)
+7. Tell the user: "Resuming from experiment #{N}. Current best: {metric}={value}. I see {patterns}. Continuing."
+8. Continue the experiment loop from Phase 3, Step 1
+9. Do NOT re-run the interview
 
 ---
 
